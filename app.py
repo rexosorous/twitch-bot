@@ -7,6 +7,7 @@ from TwitchPy import TwitchBot
 # local modules
 import commands
 import database
+import loops
 
 
 
@@ -14,8 +15,6 @@ import database
     * when someone does a command like '!mock @monipoop', check whether that user exists in API or check if they're in chat?
       before automatically adding them to the database to avoid issues where the database is filled with 'phantom' users which
       are all typos.
-
-    * add points loop
 
     * commands still needed to add:
         help

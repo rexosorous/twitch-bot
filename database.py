@@ -39,14 +39,14 @@ class Handler:
         for user in viewers['broadcaster'] + viewers['moderators'] + viewers['viewers']:
             if user not in db_users:
                 starting_points = 500
-                starting_income = 25
+                starting_income = 10
                 starting_luck = 0
                 self.sql.execute('''INSERT INTO users VALUES (?, ?, ?, ?)''', (user, starting_points, starting_income, starting_luck))
         self.conn.commit()
 
 
 
-    def get_user(user: str) -> dict:
+    def get_user_info(user: str) -> dict:
         """Gets all the info about a user (the row in the database)
 
         Parameters
@@ -59,7 +59,7 @@ class Handler:
             Keys are database column names.
         """
         self.init_users(user)
-        info = self.sql.execute('''SELECT * FROM users WHERE name == ?''', (user, )).fetchone()
+        info = self.sql.execute('''SELECT * FROM users WHERE name=?''', (user, )).fetchone()
         user_info = {
             'name': info[0],
             'points': info[1],
@@ -82,7 +82,7 @@ class Handler:
         -------
         InsufficientFunds
         """
-        info = self.get_user(user)
+        info = self.get_user_info(user)
         if info['points'] < amount:
             raise InsufficientFunds(f'@{user} has insufficient funds. {user} is short {amount - info["points"]} points.')
 
@@ -124,18 +124,18 @@ class Handler:
         if operator == 'set':
             new_amount = int(amount)
         else:
-            current_amount = self.sql.execute(f'''SELECT {field} FROM users WHERE name == ?''', (user, )).fetchone()[0]
+            current_amount = self.sql.execute(f'''SELECT {field} FROM users WHERE name=?''', (user, )).fetchone()[0]
             expression = f'{current_amount} {opreator} {amount}'
             new_amount = int(eval(expression))
 
-        self.sql.execute(f'''UPDATE users SET {field} = ? WHERE name == ?''', (new_amount, user))
+        self.sql.execute(f'''UPDATE users SET {field}=? WHERE name=?''', (new_amount, user))
         self.conn.commit()
 
         return new_amount
 
 
 
-    def transfer_points(donor: str, recipient: str, amount: int or str):
+    def transfer_points(donor: str, recipient: str, amount: int or str) -> int, int:
         """Transfers points from one user to another
 
         Parameters

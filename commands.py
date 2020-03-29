@@ -114,7 +114,7 @@ class Points(Commands.Cog):
     async def check_own_points(self, ctx):
         """Checks how many points the author has.
         """
-        points = self.db.get_user(ctx.author.name)['points']
+        points = self.db.get_user_info(ctx.author.name)['points']
         await self.bot.IRC.send(f'@{ctx.author.name} has {points:,} points.')
 
 
@@ -128,16 +128,16 @@ class Points(Commands.Cog):
         user : str
         """
         user = util.unmention(user)
-        points = self.db.get_user(user)['points']
+        points = self.db.get_user_info(user)['points']
         await self.bot.IRC.send(f'@{user} has {points:,} points.')
 
 
 
-    @Commands.create(name=['income', 'pay', 'wage', 'checkincome', 'checkpay', 'checkwage']):
+    @Commands.create(name=['income', 'pay', 'wage', 'salary', 'checkincome', 'checkpay', 'checkwage', 'checksalary']):
     async def check_own_income(self, ctx):
         """Checks how many points a user gains per cycle
         """
-        income = self.db.get_user(ctx.author.name)['income']
+        income = self.db.get_user_info(ctx.author.name)['income']
         await self.bot.IRC.send(f'@{ctx.author.name} has {income:,} income.')
 
 
@@ -151,7 +151,7 @@ class Points(Commands.Cog):
         user: str
         """
         user = util.unmention(user)
-        income = self.db.get_user(user)['income']
+        income = self.db.get_user_info(user)['income']
         await self.bot.IRC.send(f'@{user} has {income:,} income.')
 
 
@@ -160,7 +160,7 @@ class Points(Commands.Cog):
     async def check_own_luck(self, ctx):
         """Checks how much luck a user has.
         """
-        luck = self.db.get_user(ctx.author.name)['luck']
+        luck = self.db.get_user_info(ctx.author.name)['luck']
         await self.bot.IRC.send(f'@{ctx.author.name} has {luck} luck.')
 
 
@@ -174,7 +174,7 @@ class Points(Commands.Cog):
         user: str
         """
         user = util.unmention(user)
-        luck = self.db.get_user(user)['luck']
+        luck = self.db.get_user_info(user)['luck']
         await self.bot.IRC.send(f'@{user} has {luck} luck.')
 
 
@@ -282,11 +282,11 @@ class Points(Commands.Cog):
         Rolls a number between the user's luck and 100.
         So a higher luck value essentially means they have a higher chance to win.
         Result Table:
-            100     : The user gets back double what they bet and gains 5 luck.
+            100     : The user gets back double what they bet and gains 5 income.
             51-99   : The user gets back double what they bet.
             50      : The user gets back what they bet. (net neutral)
             1-49    : The user loses what they bet.
-            <0      : The user loses what they bet and loses 5 luck.
+            <0      : The user loses twice what they bet.
 
         Parameters
         -----------
@@ -301,14 +301,14 @@ class Points(Commands.Cog):
             await self.bot.IRC.send(e)
             return
 
-        luck = self.db.get_user(ctx.author.name)['luck']
+        luck = self.db.get_user_info(ctx.author.name)['luck']
         roll = random.randint(luck, 100)
         self.db.edit_user(ctx.author.name, 'points', '-', amount)
 
         if roll = 100:
             new_balance = self.db.edit_user(ctx.author.name, 'points', '+', int(amount)*2)
-            new_luck = self.db.edit_user(ctx.author.name, 'luck', '+', '5')
-            await self.bot.IRC.send(f'@{ctx.author.name} rolled a {roll}! You win {amount:,} points and 5 luck! You now have {new_balance:,} points and {new_luck} luck.')
+            new_income = self.db.edit_user(ctx.author.name, 'income', '+', '5')
+            await self.bot.IRC.send(f'@{ctx.author.name} rolled a {roll}! You win {amount:,} points and 5 more income! You now have {new_balance:,} points and {new_income} income.')
         if roll > 50:
             new_balance = self.db.edit_user(ctx.author.name, 'points', '+', int(amount)*2)
             await self.bot.IRC.send(f'@{ctx.author.name} rolled a {roll} and has won {amount:,} points! You now have {new_balance:,} points.')
@@ -319,6 +319,5 @@ class Points(Commands.Cog):
             new_balance = self.db.edit_user(ctx.author.name, 'points', '-', amount)
             await self.bot.IRC.send(f'@{ctx.author.name} rolled a {roll} and has lost {amount:,} points! You now have {new_balance:,} points.')
         else:
-            new_balance = self.db.edit_user(ctx.author.name, 'points', '-', amount)
-            new_luck = self.db.edit_user(ctx.author.name, 'luck', '-', '5')
-            await self.bot.IRC.send(f'@{ctx.author.name} rolled a {roll}! You lose {amount:,} points and 5 luck! You now have {new_balance:,} points and {new_luck} luck.')
+            new_balance = self.db.edit_user(ctx.author.name, 'points', '-', int(amount)*2)
+            await self.bot.IRC.send(f'@{ctx.author.name} rolled a {roll} and has lost {amount:,} points! You now have {new_balance:,} points.' )
